@@ -1,0 +1,12 @@
+server:
+  port: 8080
+
+mugloar:
+  api:
+    base-url: https://dragonsofmugloar.com/api/v2
+    connect-timeout-ms: 3000
+    read-timeout-ms: 5000
+
+logging:
+  level:
+    com.mugloar.solver: INFO
