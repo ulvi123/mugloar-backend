@@ -6,6 +6,7 @@ import com.mugloar.solver.service.GameLoopService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
+import java.util.concurrent.Callable;
 
 @RestController
 @RequestMapping("/api/game")
@@ -59,13 +60,15 @@ public class GameController {
 	}
 
 	@PostMapping("/{gameId}/autoplay")
-	public SolveResponse autoplay(@PathVariable String gameId,
-	                              @RequestParam(defaultValue = "1000") int target) {
+	public Callable<SolveResponse> autoplay(@PathVariable String gameId,
+	                                       @RequestParam(defaultValue = "1000") int target) {
 		log.info("Game {}: starting autoplay toward target {}", gameId, target);
-		SolveResponse result = loopService.playUntilTarget(gameId, target);
-		if (result == null) {
+		return () -> {
+			SolveResponse result = loopService.playUntilTarget(gameId, target);
+			if (result == null) {
 			throw new IllegalStateException("Autoplay did not produce a result — game likely ended or expired");
 		}
 		return result;
-	}
+	};
+};
 }
