@@ -48,15 +48,9 @@ worth knowing if you're reading my code:
   (`"UmF0aGVyIGRldHJpbWVudGFs"` decodes to `"Rather detrimental"`,
   `"Vzcbffvoyr"` ROT13-decodes to `"Impossible"`). `ProbabilityMapper` tries
   plain text first, then Base64, then ROT13, before giving up and scoring it
-    0(I will figure this fuzzy logic out). There's also a category, `"Hmmm...."`, that doesn't decode as either —
-       I couldn't figure out what it actually means, so it's deliberately scored
-       as 0 (never picked over a known option) rather than guessed at.
+    0. The category `"Hmmm...."` couldn't be decoded and is scored 0.
 
-- **Healing Potions don't cap out at some max lives.** I originally only
-  bought one when lives got low, but logs showed lives climbing well past
-  the starting 3 (up to 15+ in some runs) when gold was spent freely. So the
-  current strategy just buys a potion any time it's affordable, banking a
-  life buffer early rather than reacting once things go wrong.
+- **Healing potions can increase lives above the starting value.** Initially the bot bought potions only when lives were low, but tests showed lives climbing past the starting 3 (up to 15+). The strategy now buys a potion whenever affordable to build an early life buffer.
 
 
 ## API endpoints
@@ -131,9 +125,7 @@ src/main/java/com/mugloar/solver/
 - Error handling: a bad `gameId` or `adId` returns a `502` with a JSON error
   body (not a raw stack trace) via `GlobalExceptionHandler`. Blank IDs are
   rejected with a `400` before a request is even sent upstream.
-- I chose `RestTemplate` over `WebClient` since the game loop is inherently
-  sequential (you can't fetch ads for turn 2 before turn 1's solve result is
-  known), so there was no real benefit to a reactive client here so I just skipped using project reactor.
+- A sequential game loop means a reactive client offers little benefit; `RestTemplate` keeps the implementation simpler.
 - CORS is currently open to `http://localhost:3000` for local development
   against the React frontend. This would need tightening for a real
   deployment.
