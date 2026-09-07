@@ -46,11 +46,30 @@ public class MugloarClient {
 			throw new IllegalArgumentException("adId must not be blank");
 		}
 		try {
-			SolveResponse response = restTemplate.postForObject(
-					baseUrl + "/" + gameId + "/solve/" + adId, null, SolveResponse.class);
-			if (response == null) throw new MugloarApiException("Empty response from solve");
-			return response;
-		} catch (RestClientException e) {
+			org.springframework.http.ResponseEntity<SolveResponse> resp = restTemplate.exchange(
+					baseUrl + "/" + gameId + "/solve/" + adId,
+					org.springframework.http.HttpMethod.POST,
+					org.springframework.http.HttpEntity.EMPTY,
+					SolveResponse.class);
+
+			org.springframework.http.HttpStatusCode statusCodeObj = resp.getStatusCode();
+			int statusCode = statusCodeObj.value();
+			SolveResponse body = resp.getBody();
+
+			if (statusCodeObj.is2xxSuccessful()) {
+				if (body == null) {
+					// No body despite 2xx - treat as game expired/finished
+					throw new MugloarApiException("Empty response from solve",
+						new org.springframework.web.client.HttpClientErrorException(org.springframework.http.HttpStatus.GONE, "Empty body"));
+				}
+				return body;
+			} else if (statusCode == org.springframework.http.HttpStatus.NOT_FOUND.value() || statusCode == org.springframework.http.HttpStatus.GONE.value()) {
+				throw new MugloarApiException("Failed to solve ad " + adId,
+					new org.springframework.web.client.HttpClientErrorException(org.springframework.http.HttpStatus.valueOf(statusCode), "Upstream returned " + statusCode));
+			} else {
+				throw new MugloarApiException("Failed to solve ad " + adId + ": upstream returned " + statusCode);
+			}
+		} catch (org.springframework.web.client.RestClientException e) {
 			throw new MugloarApiException("Failed to solve ad " + adId, e);
 		}
 	}
