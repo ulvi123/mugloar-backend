@@ -16,7 +16,7 @@ import java.util.Optional;
 public class GameLoopService {
 
 	private static final Logger log = LoggerFactory.getLogger(GameLoopService.class);
-	private static final int MAX_TURNS_SAFETY_CAP = 2000; // guards against infinite loop in case any ads are innerly broken or the game never ends for some unknown reason to me
+	private static final int MAX_TURNS_SAFETY_CAP = 2000;
 	private static final int MAX_CONSECUTIVE_FAILURES = 5;
 
 
