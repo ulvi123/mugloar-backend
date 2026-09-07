@@ -62,4 +62,20 @@ class GameLoopServiceTest {
 
 		verify(client).buy("game1", "hpot");   // now buys even though lives weren't low
 	}
+
+	@Test
+	void doesNotBuyWhenGoldInsufficient() {
+		GameLoopService service = new GameLoopService(client);
+
+		Ad[] ads = { new Ad("a1", "msg", "10", 5, "Piece of cake") };
+		when(client.getAds("game1")).thenReturn(ads).thenReturn(new Ad[0]);
+		when(client.solve("game1", "a1"))
+				.thenReturn(new SolveResponse(true, 3, 40, 500, 500, 1, "climbing"));
+		lenient().when(client.getShop("game1"))
+				.thenReturn(new ShopItem[]{ new ShopItem("hpot", "Healing potion", 50, null) });
+
+		service.playUntilTarget("game1", 1000);
+
+		verify(client, never()).buy(anyString(), anyString());
+	}
 }
