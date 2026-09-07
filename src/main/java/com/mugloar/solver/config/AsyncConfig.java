@@ -24,6 +24,6 @@ public class AsyncConfig implements WebMvcConfigurer {
 	@Override
 	public void configureAsyncSupport(AsyncSupportConfigurer configurer) {
 		configurer.setTaskExecutor(autoplayExecutor());
-		configurer.setDefaultTimeout(120_000); //because autoplay can take a long time, intiial testing of mine reported 60 seconds was not enough, so I doubled it to 120 seconds
+		configurer.setDefaultTimeout(300_000); //another increase in timeout to 5 minutes for autoplay tasks
 	}
 }
