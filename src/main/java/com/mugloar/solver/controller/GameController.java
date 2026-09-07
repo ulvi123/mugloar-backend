@@ -3,15 +3,9 @@ package com.mugloar.solver.controller;
 import com.mugloar.solver.client.MugloarClient;
 import com.mugloar.solver.dto.*;
 import com.mugloar.solver.service.GameLoopService;
-import com.mugloar.solver.service.AutoplayJobService;
-import com.mugloar.solver.dto.AutoplayJobStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/game")
@@ -19,14 +13,12 @@ public class GameController {
 
 	private final MugloarClient client;
 	private final GameLoopService loopService;
-	private final AutoplayJobService jobService;
 	private static final Logger log = LoggerFactory.getLogger(GameController.class);
 
 
-	public GameController(MugloarClient client, GameLoopService loopService, AutoplayJobService jobService) {
+	public GameController(MugloarClient client, GameLoopService loopService) {
 		this.client = client;
 		this.loopService = loopService;
-		this.jobService = jobService;
 	}
 
 	@PostMapping("/start")
@@ -67,17 +59,13 @@ public class GameController {
 	}
 
 	@PostMapping("/{gameId}/autoplay")
-	public ResponseEntity<Map<String, String>> autoplay(@PathVariable String gameId,
-	                                                    @RequestParam(defaultValue = "1000") int target) {
-		log.info("Game {}: enqueueing autoplay toward target {}", gameId, target);
-		String jobId = jobService.submit(gameId, target);
-		return ResponseEntity.status(HttpStatus.ACCEPTED).body(Map.of("jobId", jobId));
-	}
-
-	@GetMapping("/jobs/{jobId}")
-	public ResponseEntity<AutoplayJobStatus> jobStatus(@PathVariable String jobId) {
-		AutoplayJobStatus status = jobService.status(jobId);
-		if (status == null) return ResponseEntity.notFound().build();
-		return ResponseEntity.ok(status);
+	public SolveResponse autoplay(@PathVariable String gameId,
+	                              @RequestParam(defaultValue = "1000") int target) {
+		log.info("Game {}: starting autoplay toward target {}", gameId, target);
+		SolveResponse result = loopService.playUntilTarget(gameId, target);
+		if (result == null) {
+			throw new IllegalStateException("Autoplay did not produce a result — game likely ended or expired");
+		}
+		return result;
 	}
 }
