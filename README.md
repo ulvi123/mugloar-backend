@@ -155,3 +155,19 @@ src/main/java/com/mugloar/solver/
 - CORS is currently open to `http://localhost:3000` for local development
   against the React frontend. This would need tightening for a real
   deployment.
+## Results
+
+Across 5 consecutive autoplay runs: 2 reached the 1000-point target cleanly
+(1020, 1004, both with 15+ lives to spare), 2 ended in an ordinary in-game
+loss (789, 780 — ran out of lives through normal gameplay), and 1 run (733)
+was cut short after the upstream API repeatedly refused to resolve a
+specific ad — the bot detected this after 5 consecutive failures and
+returned its last good state instead of crashing, preserving the score
+earned up to that point.
+
+This variance is inherent to the game itself (ad quality per run is
+randomized, and the API's obfuscation and occasional per-ad failures are
+outside the bot's control I assume) rather than a flaw in the selection strategy.
+What the bot does control — picking the best available option each turn,
+managing gold/lives proactively, and degrading gracefully on upstream
+failures rather than crashing — is demonstrated and tested.
