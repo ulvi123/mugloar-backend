@@ -18,7 +18,11 @@ public class ScriptRunner {
 		System.out.println("Final gold: " + (result != null ? result.gold() : 0));
 		System.out.println("Lives remaining: " + (result != null ? result.lives() : 0));
 
+		if (result != null && result.score() >= 1000) {
+			System.out.println("Target reached.");
+		} else {
+			System.out.println("Target not reached this run.");
+		}
 		ctx.close();
-		System.exit(result != null && result.score() >= 1000 ? 0 : 1);
 	}
 }

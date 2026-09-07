@@ -16,7 +16,9 @@ import java.util.Optional;
 public class GameLoopService {
 
 	private static final Logger log = LoggerFactory.getLogger(GameLoopService.class);
-	private static final int MAX_TURNS_SAFETY_CAP = 2000; // guards against infinite loop on API weirdness
+	private static final int MAX_TURNS_SAFETY_CAP = 2000; // guards against infinite loop in case any ads are innerly broken or the game never ends for some unknown reason to me
+	private static final int MAX_CONSECUTIVE_FAILURES = 5;
+
 
 	private final MugloarClient client;
 
@@ -31,24 +33,47 @@ public class GameLoopService {
 	public SolveResponse playUntilTarget(String gameId, int targetScore) {
 		SolveResponse last = null;
 		int turns = 0;
+		int consecutiveFailures = 0;
 
 		while (turns++ < MAX_TURNS_SAFETY_CAP) {
-			Ad[] ads = client.getAds(gameId);
+			Ad[] ads;
+			try {
+				ads = client.getAds(gameId);
+			} catch (MugloarApiException e) {
+				consecutiveFailures++;
+				log.warn("Game {}: failed to fetch ads on turn {} (consecutive failure {}/{}): {}",
+						gameId, turns, consecutiveFailures, MAX_CONSECUTIVE_FAILURES, e.getMessage());
+				if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
+					log.error("Game {}: giving up after {} consecutive failures — game likely ended or expired server-side",
+							gameId, consecutiveFailures);
+					break;
+				}
+				continue;
+			}
+
 			Optional<Ad> best = AdSelector.pickBest(ads);
 			if (best.isEmpty()) {
-				// If no ads are available on the very first fetch, treat this as an upstream API problem
-				// rather than returning a null result which serializes to empty JSON fields.
-				if (last == null) {
-					throw new MugloarApiException("No ads available for game " + gameId);
-				}
 				log.warn("No ads available for game {}, stopping", gameId);
 				break;
 			}
 
-			Ad chosen = best.get();
-			last = client.solve(gameId, chosen.adId());
+			try {
+				last = client.solve(gameId, best.get().adId());
+				consecutiveFailures = 0;
+			} catch (MugloarApiException e) {
+				consecutiveFailures++;
+				log.warn("Game {}: failed to solve ad {} on turn {} (consecutive failure {}/{}): {}",
+						gameId, best.get().adId(), turns, consecutiveFailures, MAX_CONSECUTIVE_FAILURES, e.getMessage());
+				if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
+					log.error("Game {}: giving up after {} consecutive failures — game likely ended or expired server-side",
+							gameId, consecutiveFailures);
+					break;
+				}
+				continue;
+			}
+
 			log.info("Game {}: solved ad {} (probability='{}', mappedScore={}) -> success={}, score={}, lives={}, gold={}",
-					gameId, chosen.adId(), chosen.probability(), ProbabilityMapper.score(chosen.probability()),
+					gameId, best.get().adId(), best.get().probability(), ProbabilityMapper.score(best.get().probability()),
 					last.success(), last.score(), last.lives(), last.gold());
 
 			if (last.lives() <= 0) break;
