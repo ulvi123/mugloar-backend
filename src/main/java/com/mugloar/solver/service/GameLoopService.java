@@ -4,6 +4,7 @@ import com.mugloar.solver.client.MugloarClient;
 import com.mugloar.solver.dto.*;
 import com.mugloar.solver.strategy.AdSelector;
 import com.mugloar.solver.strategy.ProbabilityMapper;
+import com.mugloar.solver.exception.MugloarApiException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -35,6 +36,11 @@ public class GameLoopService {
 			Ad[] ads = client.getAds(gameId);
 			Optional<Ad> best = AdSelector.pickBest(ads);
 			if (best.isEmpty()) {
+				// If no ads are available on the very first fetch, treat this as an upstream API problem
+				// rather than returning a null result which serializes to empty JSON fields.
+				if (last == null) {
+					throw new MugloarApiException("No ads available for game " + gameId);
+				}
 				log.warn("No ads available for game {}, stopping", gameId);
 				break;
 			}

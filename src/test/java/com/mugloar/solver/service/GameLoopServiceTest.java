@@ -10,6 +10,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
 class GameLoopServiceTest {
@@ -77,5 +78,15 @@ class GameLoopServiceTest {
 		service.playUntilTarget("game1", 1000);
 
 		verify(client, never()).buy(anyString(), anyString());
+	}
+
+	@Test
+	void throwsWhenNoAdsInitially() {
+	    GameLoopService service = new GameLoopService(client);
+
+	    when(client.getAds("game1")).thenReturn(new Ad[0]);
+
+	    assertThrows(com.mugloar.solver.exception.MugloarApiException.class,
+	            () -> service.playUntilTarget("game1", 1000));
 	}
 }
