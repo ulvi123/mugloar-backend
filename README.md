@@ -58,24 +58,6 @@ worth knowing if you're reading my code:
   current strategy just buys a potion any time it's affordable, banking a
   life buffer early rather than reacting once things go wrong.
 
-### Results
-
-I ran the autoplay loop multiple times back to back rather than relying on
-one lucky run. Across a batch of 5 consecutive games:
-| Run | Score | Outcome |
-|-----|-------|---------|
-| 1   | 1016  | Target reached, 16 lives remaining |
-| 2   | 1019  | Target reached, 12 lives remaining |
-| 3   | 1009  | Target reached, 16 lives remaining |
-| 4   | 917   | Died before reaching target |
-| 5   | 1009  | Target reached |
-
-3-4 out of 5 runs typically clear 1000. The occasional loss tends to happen
-in a late-game stretch where a large share of the available ads report the
-unresolvable `"Hmmm...."` category or obfuscated low-probability categories
-at the same time — I wasn't able to fully characterize this within the
-project timeline. It's a known limitation, not a crash(I assume,but can be wrong): the bot degrades by
-running out of lives, it doesn't error out.
 
 ## API endpoints
  Method | Path | Description |
