@@ -77,6 +77,20 @@ mvn spring-boot:run
 
 Server starts on `http://localhost:8080`.
 
+## Configuration
+
+- Preferred config file: `src/main/resources/application.yml`.
+- Do not keep both `application.yml` and `application.yaml`; pick one to avoid confusion.
+- Example property you may set:
+
+```yaml
+mugloar:
+  api:
+    base-url: "https://dragonsofmugloar.com/api/v2"
+```
+
+You can also provide these values via environment variables or Spring profiles for local/CI setups.
+
 ### Running the scripting challenge standalone (no web server)
 
 ```bash
