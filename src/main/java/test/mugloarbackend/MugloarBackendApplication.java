@@ -1,13 +1,10 @@
 package test.mugloarbackend;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+// Removed Spring Boot application from main sources to avoid repackage ambiguity.
+// If this entry point is needed for tests, move it to src/test/java and restore @SpringBootApplication.
 
-@SpringBootApplication
 public class MugloarBackendApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(MugloarBackendApplication.class, args);
-	}
+	// Deactivated entry point
 
 }
