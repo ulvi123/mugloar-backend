@@ -96,16 +96,26 @@ public class GameLoopService {
 	}
 
 	private void maybeBuyLifePotion(String gameId, SolveResponse state) {
-		if ( state.gold() < 50) return;
+		if (state.gold() < 50) return;
 
-		ShopItem[] shop = client.getShop(gameId);
+		ShopItem[] shop;
+		try {
+			shop = client.getShop(gameId);
+		} catch (MugloarApiException e) {
+			log.warn("Game {}: failed to fetch shop, skipping potion purchase this turn: {}", gameId, e.getMessage());
+			return;
+		}
 		Arrays.stream(shop)
 				.filter(item -> containsAny(item.name(), "heal", "life"))
 				.filter(item -> item.cost() <= state.gold())
 				.findFirst()
 				.ifPresent(item -> {
-					log.info("Game {}: buying {} for {} gold (lives={})", gameId, item.name(), item.cost(), state.lives());
-					client.buy(gameId, item.id());
+					try {
+						log.info("Game {}: buying {} for {} gold (lives={} -> banking buffer)", gameId, item.name(), item.cost(), state.lives());
+						client.buy(gameId, item.id());
+					} catch (MugloarApiException e) {
+						log.warn("Game {}: failed to buy {}, continuing without it: {}", gameId, item.id(), e.getMessage());
+					}
 				});
 	}
 

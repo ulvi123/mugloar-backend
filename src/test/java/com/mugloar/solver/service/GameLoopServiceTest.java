@@ -161,4 +161,22 @@ class GameLoopServiceTest {
 		assertNull(result);
 		verify(client, times(5)).solve("game1", "badAd");   // exactly 5, not 91
 	}
+
+	@Test
+	void continuesPlayingWhenShopFetchFailsInsteadOfAbortingRun() {
+		GameLoopService service = new GameLoopService(client);
+
+		Ad[] ads = { new Ad("a1", "msg", "10", 5, "Piece of cake") };
+		when(client.getAds("game1")).thenReturn(ads).thenReturn(new Ad[0]);
+		when(client.solve("game1", "a1"))
+				.thenReturn(new SolveResponse(true, 3, 100, 500, 500, 1, "climbing"));
+		when(client.getShop("game1")).thenThrow(new MugloarApiException("Failed to fetch shop"));
+
+		SolveResponse result = service.playUntilTarget("game1", 1000);
+
+		assertEquals(500, result.score());
+		verify(client, never()).buy(anyString(), anyString());
+	}
+
+
 }
