@@ -24,24 +24,25 @@ public class GlobalExceptionHandler {
 			}
 		}
 		return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
-				.body(Map.of("error", "Upstream game API failed", "detail", ex.getMessage()));
+			.body(Map.of("error", "Upstream game API failed", "detail", ex.getMessage()));
 	}
 
 	@ExceptionHandler(RestClientException.class)
 	public ResponseEntity<Map<String, String>> handleRestClient(RestClientException ex) {
 		return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
-				.body(Map.of("error", "Upstream game API unreachable", "detail", ex.getMessage()));
+			.body(Map.of("error", "Upstream game API unreachable", "detail", ex.getMessage()));
 	}
 
 	@ExceptionHandler(IllegalArgumentException.class)
 	public ResponseEntity<Map<String, String>> handleBadInput(IllegalArgumentException ex) {
 		return ResponseEntity.badRequest()
-				.body(Map.of("error", "Invalid request", "detail", ex.getMessage()));
+			.body(Map.of("error", "Invalid request", "detail", ex.getMessage()));
 	}
 
-	@ExceptionHandler(Exception.class)
-	public ResponseEntity<Map<String, String>> handleGeneric(Exception ex) {
-		return ResponseEntity.internalServerError()
-				.body(Map.of("error", "Unexpected server error", "detail", ex.getMessage()));
-	}
+	// Removed the generic Exception handler
+	// @ExceptionHandler(Exception.class)
+	// public ResponseEntity<Map<String, String>> handleGeneric(Exception ex) {
+	//	return ResponseEntity.internalServerError()
+	//		.body(Map.of("error", "Unexpected server error", "detail", ex.getMessage()));
+	// }
 }
